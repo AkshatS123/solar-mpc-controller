@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# uv
+.python-version
+
+# Data — never commit raw or recorded traces
+data/raw/*
+!data/raw/.gitkeep
+
+# Results
+results/*.parquet
+results/*.csv
+results/*.npz
+
+# Notebooks
+.ipynb_checkpoints/
+
+# IDE / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Local secrets, never commit
+.env
+.env.local
+*.pem
