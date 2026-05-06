@@ -68,7 +68,13 @@ def simulate(
         action = controller.step(inputs)
 
         amp = action.amperage
-        charge_kw = amp * cfg.voltage / 1000.0
+        commanded_charge_kw = amp * cfg.voltage / 1000.0
+        # The EV's BMS refuses current at full SoC: the actual flow is
+        # capped by remaining capacity for this step.
+        remaining_kwh = max(0.0, (1.0 - soc) * cfg.battery_capacity_kwh)
+        realized_charge_kwh = min(commanded_charge_kw * step_hours, remaining_kwh)
+        charge_kw = realized_charge_kwh / step_hours if step_hours > 0 else 0.0
+
         net_load = float(trace.iloc[i]["load_kw"] + charge_kw - trace.iloc[i]["solar_kw"])
         grid_import = max(0.0, net_load)
         cost = grid_import * float(trace.iloc[i]["grid_price"]) * step_hours

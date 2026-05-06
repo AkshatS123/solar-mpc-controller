@@ -18,6 +18,7 @@ solar-mpc = "solar_mpc.cli:main"
 
 [dependency-groups]
 dev = [
+    "matplotlib>=3.9",
     "pytest>=8.0",
     "ruff>=0.6",
 ]

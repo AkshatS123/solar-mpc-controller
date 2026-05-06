@@ -78,28 +78,30 @@ uv run solar-mpc --help
 
 ## Status
 
-**Phase 2 — runs end-to-end.** Synthetic trace, real cvxpy MPC, both
-baselines, rolling-horizon simulator, working CLI, 8 passing tests.
+**Phase 3 — figures + writeup.** Synthetic trace, real cvxpy MPC, both
+baselines, rolling-horizon simulator, working CLI, 8 passing tests, two
+figures and a walkthrough you can read end-to-end.
 
-```text
-$ uv run python scripts/run_demo.py
-controller   cost ($)   final SoC   deadline
-MPC             3.649       0.799      False
-Greedy          6.991       1.000       True
-TOU            19.054       1.000       True
-```
+| Controller | Strategy                              | Cost ($) | Final SoC |
+|------------|---------------------------------------|----------|-----------|
+| **MPC**    | Receding-horizon optimization (cvxpy) | **6.81** |   0.917   |
+| Greedy     | Charge on solar excess                | 7.67     |   1.000   |
+| TOU        | Charge on cheap price                 | 10.82    |   1.000   |
 
-(Synthetic 1-day TOU trace, 60 kWh battery, 32 A max, 15-min step.
-"Deadline False" for MPC = it satisfies SoC ≥ 0.8 at the deadline step but
-not at trace end — see `docs/algorithm.md`.)
+_Synthetic 2-day trace, 15-min steps, 60 kWh / 240 V / 32 A._
+
+![comparison](./notebooks/figures/02_comparison.png)
+
+→ Read the walkthrough: [`notebooks/01_walkthrough.md`](./notebooks/01_walkthrough.md)
+→ Read the algorithm spec: [`docs/algorithm.md`](./docs/algorithm.md)
 
 ## Roadmap
 
 - [x] **Phase 1** — synthetic trace + cvxpy MPC formulation
 - [x] **Phase 2** — rolling-horizon simulator, baselines, CLI
-- [ ] **Phase 3** — plots in `notebooks/`, real Tesphase trace replay (anonymized)
+- [x] **Phase 3** — figures, notebook walkthrough, algorithm writeup
 - [ ] **Phase 4** — quantile-forecast inputs, robust formulation
-- [ ] **Phase 5** — writeup on [akshatsharma.blog](https://akshatsharma.blog)
+- [ ] **Phase 5** — Tesphase trace replay + post on [akshatsharma.blog](https://akshatsharma.blog)
 
 ## License
 
