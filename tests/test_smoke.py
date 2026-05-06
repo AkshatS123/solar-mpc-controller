@@ -16,6 +16,8 @@ def test_controller_constructs() -> None:
         amp_max=32.0,
         amp_step=1.0,
         delta_amp_max=8.0,
+        voltage=240.0,
+        battery_capacity_kwh=60.0,
         soc_target=0.8,
         smoothness_weight=0.01,
         soc_terminal_weight=1.0,

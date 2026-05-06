@@ -78,14 +78,26 @@ uv run solar-mpc --help
 
 ## Status
 
-**Phase 0 — scaffold.** The skeleton compiles, `pytest` passes, the CLI loads,
-the controllers raise `NotImplementedError`. No real solver run yet.
+**Phase 2 — runs end-to-end.** Synthetic trace, real cvxpy MPC, both
+baselines, rolling-horizon simulator, working CLI, 8 passing tests.
+
+```text
+$ uv run python scripts/run_demo.py
+controller   cost ($)   final SoC   deadline
+MPC             3.649       0.799      False
+Greedy          6.991       1.000       True
+TOU            19.054       1.000       True
+```
+
+(Synthetic 1-day TOU trace, 60 kWh battery, 32 A max, 15-min step.
+"Deadline False" for MPC = it satisfies SoC ≥ 0.8 at the deadline step but
+not at trace end — see `docs/algorithm.md`.)
 
 ## Roadmap
 
-- [ ] **Phase 1** — synthetic trace + naive cvxpy formulation, single-shot solve
-- [ ] **Phase 2** — rolling-horizon simulator, baselines, plots
-- [ ] **Phase 3** — real Tesphase trace replay (anonymized, separate dataset repo)
+- [x] **Phase 1** — synthetic trace + cvxpy MPC formulation
+- [x] **Phase 2** — rolling-horizon simulator, baselines, CLI
+- [ ] **Phase 3** — plots in `notebooks/`, real Tesphase trace replay (anonymized)
 - [ ] **Phase 4** — quantile-forecast inputs, robust formulation
 - [ ] **Phase 5** — writeup on [akshatsharma.blog](https://akshatsharma.blog)
 
