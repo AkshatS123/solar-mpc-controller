@@ -110,6 +110,22 @@ deadline 100 % of the time. MPC reliably succeeds. See the [walkthrough](./noteb
 for why nominal MPC is already robust on this problem and when robust
 extensions would dominate.
 
+### Real-data replay (anonymized own-house Tesphase trace, 10.6 days)
+
+| Controller | Cost ($) | Trajectory |
+|------------|----------|------------|
+| **MPC**         | **8.16** | Holds at 0.8 target, opportunistically tops up over days |
+| RobustMPC       | 8.16     | Identical to MPC (deterministic SoC dynamics) |
+| Greedy          | 16.26    | Charges hard at first sunlight, pays for the rush |
+| TOU             | 13.33    | Charges hard overnight off-peak, ignores solar |
+
+![tesphase](./notebooks/figures/04_tesphase_replay.png)
+
+Real PG&E EV2-A summer tariff, 60 kWh / 240 V / 32 A. The synthetic-trace
+finding holds: **MPC saves ~50% over Greedy and ~39% over TOU.** The
+controller's staircase pattern is the optimization explicitly choosing
+when to use cheap-solar windows.
+
 → Read the walkthrough: [`notebooks/01_walkthrough.md`](./notebooks/01_walkthrough.md)
 → Read the algorithm spec: [`docs/algorithm.md`](./docs/algorithm.md)
 

@@ -53,9 +53,10 @@ about goals and roadmap; the repo doc is right about what the code does**.
 | 3 — figures, walkthrough, algorithm spec | ✅ committed |
 | 4 — stochastic simulator, RobustMPC, CVaR, MIP variant, tsfm-bench adapter | ✅ committed |
 | 5 (engineering) — replay script, blog draft, launch assets | ✅ committed |
-| 5 (publishing) — own-house trace export, blog post, social, release tag | ⬜ user-only |
+| 5 (real-data replay) — own-house Tesphase trace + figure 04 via Neon MCP | ✅ committed |
+| 5 (publishing) — blog post, social, release tag, resume bullet | ⬜ user-only |
 
-30 passing tests, ruff clean, demo + 3 figures regenerate end-to-end.
+34 passing tests, ruff clean, demo + 4 figures regenerate end-to-end.
 
 ## Phase 5 publishing — what's left for you
 

@@ -94,12 +94,17 @@ def main() -> int:
         )
         return 2
 
+    # Auto-tune TOU threshold from the trace so it works with any utility
+    # tariff: midpoint of min and max prices catches the off-peak band.
+    price_threshold = float((trace["grid_price"].min() + trace["grid_price"].max()) / 2)
+
     controllers = {
         "MPC": MPCController(config),
         "RobustMPC": RobustMPCController(config),
         "Greedy": GreedyController(config, export_threshold_kw=0.5),
-        "TOU": TouRuleController(config, cheap_price_threshold=0.25),
+        "TOU": TouRuleController(config, cheap_price_threshold=price_threshold),
     }
+    print(f"TOU threshold (auto-tuned to trace): ${price_threshold:.3f}/kWh")
 
     results = {}
     print(f"\nReplay over {len(trace)}-step trace from {args.trace.name}:")
