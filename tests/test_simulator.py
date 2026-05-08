@@ -3,8 +3,9 @@
 import pytest
 
 from solar_mpc.baselines import GreedyController
-from solar_mpc.controller import ControllerConfig
-from solar_mpc.simulator import simulate
+from solar_mpc.controller import ControllerConfig, RobustMPCController
+from solar_mpc.noise import NoiseSpec
+from solar_mpc.simulator import simulate, simulate_under_noise
 from solar_mpc.traces import synthetic_trace
 
 
@@ -50,3 +51,48 @@ def test_simulator_rejects_too_short_trace() -> None:
     controller = GreedyController(config)
     with pytest.raises(ValueError, match="too short"):
         simulate(controller, trace, soc_initial=0.4)
+
+
+def test_simulate_under_noise_returns_n_realizations() -> None:
+    config = _config()
+    trace = synthetic_trace(days=1, step_minutes=config.step_minutes)
+    controller = GreedyController(config, export_threshold_kw=0.5)
+
+    results = simulate_under_noise(
+        controller,
+        trace,
+        soc_initial=0.4,
+        n_realizations=4,
+        seed=0,
+        n_scenarios=5,
+        noise_spec=NoiseSpec(0.2, 0.1),
+    )
+    assert len(results) == 4
+    for r in results:
+        assert 0.0 <= r.final_soc <= 1.0
+        assert (r.history["soc_post"] <= 1.0 + 1e-9).all()  # BMS phantom-charge regression
+
+
+def test_simulate_under_noise_is_deterministic_with_seed() -> None:
+    config = _config()
+    trace = synthetic_trace(days=1, step_minutes=config.step_minutes)
+    controller = GreedyController(config)
+
+    a = simulate_under_noise(
+        controller, trace, soc_initial=0.4, n_realizations=2, seed=99, n_scenarios=3
+    )
+    b = simulate_under_noise(
+        controller, trace, soc_initial=0.4, n_realizations=2, seed=99, n_scenarios=3
+    )
+    assert a[0].total_cost == b[0].total_cost
+    assert a[1].total_cost == b[1].total_cost
+
+
+def test_simulate_under_noise_runs_with_robust_mpc() -> None:
+    config = _config()
+    trace = synthetic_trace(days=1, step_minutes=config.step_minutes)
+    controller = RobustMPCController(config)
+    results = simulate_under_noise(
+        controller, trace, soc_initial=0.4, n_realizations=2, seed=1, n_scenarios=4
+    )
+    assert len(results) == 2

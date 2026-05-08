@@ -9,6 +9,7 @@ from __future__ import annotations
 import numpy as np
 
 from .controller import ControlAction, ControllerConfig, ControllerInputs
+from .forecast import ForecastBundle
 
 
 class GreedyController:
@@ -28,6 +29,20 @@ class GreedyController:
         plan = np.full(len(inputs.solar_kw), amp)
         return ControlAction(amperage=amp, horizon_plan=plan, objective_value=float("nan"))
 
+    def step_bundle(
+        self, bundle: ForecastBundle, soc_now: float, deadline_step: int
+    ) -> ControlAction:
+        solar_pt, load_pt, price = bundle.point()
+        return self.step(
+            ControllerInputs(
+                solar_kw=solar_pt,
+                load_kw=load_pt,
+                grid_price=price,
+                soc_now=soc_now,
+                deadline_step=deadline_step,
+            )
+        )
+
 
 class TouRuleController:
     """Price-threshold controller — charges full whenever current price is cheap.
@@ -45,3 +60,17 @@ class TouRuleController:
         amp = self.config.amp_max if inputs.grid_price[0] <= self.cheap_price_threshold else 0.0
         plan = np.full(len(inputs.solar_kw), amp)
         return ControlAction(amperage=amp, horizon_plan=plan, objective_value=float("nan"))
+
+    def step_bundle(
+        self, bundle: ForecastBundle, soc_now: float, deadline_step: int
+    ) -> ControlAction:
+        solar_pt, load_pt, price = bundle.point()
+        return self.step(
+            ControllerInputs(
+                solar_kw=solar_pt,
+                load_kw=load_pt,
+                grid_price=price,
+                soc_now=soc_now,
+                deadline_step=deadline_step,
+            )
+        )

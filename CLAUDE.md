@@ -51,10 +51,10 @@ about goals and roadmap; the repo doc is right about what the code does**.
 | 0 — scaffold | ✅ committed |
 | 1+2 — cvxpy MPC, baselines, simulator, CLI | ✅ committed |
 | 3 — figures, walkthrough, algorithm spec | ✅ committed |
-| 4 — quantile forecasts + robust MPC | ⬜ next |
-| 5 — Tesphase trace replay + blog post | ⬜ |
+| 4 — stochastic simulator, RobustMPC, CVaR, MIP variant, tsfm-bench adapter | ✅ committed |
+| 5 — Tesphase trace replay + blog post | ⬜ blocked on user trace |
 
-8 passing tests, ruff clean, demo runs end-to-end.
+28 passing tests, ruff clean, demo + 3 figures regenerate end-to-end.
 
 The canonical phase tracker is the **Phased milestones** section in the
 [strategic plan](file://~/Documents/Dev/AkshatEverything/03-Startups/Active/Tesphase/Research/SolarMPCController_2026-05-07.md).

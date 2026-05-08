@@ -78,9 +78,13 @@ uv run solar-mpc --help
 
 ## Status
 
-**Phase 3 — figures + writeup.** Synthetic trace, real cvxpy MPC, both
-baselines, rolling-horizon simulator, working CLI, 8 passing tests, two
-figures and a walkthrough you can read end-to-end.
+**Phase 4 — robust under noise.** Synthetic trace, real cvxpy MPC,
+scenario-based RobustMPC with optional CVaR, mixed-integer amperage
+variant, rolling-horizon simulator with stochastic realizations, both
+heuristic baselines, working CLI, 28 passing tests, three figures and a
+two-part walkthrough.
+
+### Perfect-forecast comparison
 
 | Controller | Strategy                              | Cost ($) | Final SoC |
 |------------|---------------------------------------|----------|-----------|
@@ -88,9 +92,23 @@ figures and a walkthrough you can read end-to-end.
 | Greedy     | Charge on solar excess                | 7.67     |   1.000   |
 | TOU        | Charge on cheap price                 | 10.82    |   1.000   |
 
-_Synthetic 2-day trace, 15-min steps, 60 kWh / 240 V / 32 A._
-
 ![comparison](./notebooks/figures/02_comparison.png)
+
+### Reliability under noisy forecasts (50 realizations, σ_solar=0.40)
+
+| Controller | Cost ($) | **Deadline miss** |
+|------------|----------|-------------------|
+| **MPC**         | 9.91 ± 0.18 | **0 %** |
+| RobustMPC       | 9.94 ± 0.18 | **0 %** |
+| Greedy          | 8.65 ± 0.32 | **100 %** |
+| TOU             | 12.52 ± 0.12 | **0 %** |
+
+![reliability](./notebooks/figures/03_robustness.png)
+
+Headline: solar-greedy is the cheapest controller — and fails at the
+deadline 100 % of the time. MPC reliably succeeds. See the [walkthrough](./notebooks/01_walkthrough.md)
+for why nominal MPC is already robust on this problem and when robust
+extensions would dominate.
 
 → Read the walkthrough: [`notebooks/01_walkthrough.md`](./notebooks/01_walkthrough.md)
 → Read the algorithm spec: [`docs/algorithm.md`](./docs/algorithm.md)
@@ -100,7 +118,7 @@ _Synthetic 2-day trace, 15-min steps, 60 kWh / 240 V / 32 A._
 - [x] **Phase 1** — synthetic trace + cvxpy MPC formulation
 - [x] **Phase 2** — rolling-horizon simulator, baselines, CLI
 - [x] **Phase 3** — figures, notebook walkthrough, algorithm writeup
-- [ ] **Phase 4** — quantile-forecast inputs, robust formulation
+- [x] **Phase 4** — stochastic simulator, RobustMPC, CVaR variant, MIP variant, tsfm-bench adapter shim
 - [ ] **Phase 5** — Tesphase trace replay + post on [akshatsharma.blog](https://akshatsharma.blog)
 
 ## License

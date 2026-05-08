@@ -2,7 +2,12 @@
 
 import numpy as np
 
-from solar_mpc.controller import ControllerConfig, ControllerInputs, MPCController
+from solar_mpc.controller import (
+    ControllerConfig,
+    ControllerInputs,
+    MPCController,
+    MPCControllerInteger,
+)
 
 
 def _config(horizon: int = 4) -> ControllerConfig:
@@ -49,6 +54,24 @@ def test_step_prefers_charging_during_solar_excess() -> None:
     )
     action = MPCController(config).step(inputs)
     assert action.amperage > 0.0
+
+
+def test_integer_controller_returns_integer_amperages() -> None:
+    """Whether or not a MIP solver is installed, the rounded fallback also
+    yields integer-valued amperages — assert on integrality, not on solver path.
+    """
+    config = _config(horizon=4)
+    inputs = ControllerInputs(
+        solar_kw=np.array([3.0, 3.5, 4.0, 4.0]),
+        load_kw=np.array([1.0, 1.0, 1.0, 1.0]),
+        grid_price=np.array([0.30, 0.30, 0.30, 0.30]),
+        soc_now=0.4,
+        deadline_step=4,
+    )
+    action = MPCControllerInteger(config).step(inputs)
+    integer_diffs = np.abs(action.horizon_plan - np.round(action.horizon_plan))
+    assert (integer_diffs < 1e-6).all()
+    assert 0.0 <= action.amperage <= config.amp_max
 
 
 def test_step_respects_slew_constraint() -> None:

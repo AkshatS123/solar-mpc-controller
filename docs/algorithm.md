@@ -122,3 +122,69 @@ optimization re-solves.
   language for convex optimization. *JMLR* 17 (83): 1–5.
 - Goebel, C. et al. (2017). Model predictive control for cost-minimizing
   EV charging with rooftop PV. *Applied Energy* 196: 165–177.
+- Rockafellar, R. T. & Uryasev, S. (2000). Optimization of conditional
+  value-at-risk. *Journal of Risk* 2: 21–42.
+
+## Phase 4 — Robust extensions
+
+### Scenario-based robust MPC (`RobustMPCController`)
+
+Takes a `ForecastBundle` of K scenarios `(S^k, L^k)` instead of point
+inputs. The decision variable `a[H]` is shared across scenarios — first-
+stage non-anticipative control. Per-scenario grid-import cost
+`g^k[τ] = max(0, L^k[τ] + p[τ] − S^k[τ])` is averaged in the objective:
+
+```
+minimize  (1/K) · Σ_k Σ_τ π[τ] · g^k[τ] · Δt
+        + λ_smooth · Σ_τ (a[τ+1] − a[τ])²
+        − λ_soc · s[H−1]
+```
+
+Constraints unchanged from nominal MPC.
+
+**Important property:** SoC dynamics depend only on `a` (deterministic
+given the action). So the deadline constraint is identical to nominal,
+and under unbiased noise, the expected-cost objective with convex `pos`
+yields nearly the same plan as nominal MPC. The robust formulation here
+only differentiates on cost variance, not on reliability. This is the
+honest finding from the Phase 4 stress test.
+
+### CVaR risk-aversion (opt-in)
+
+`RobustMPCController(cvar_alpha=0.9, cvar_weight=0.7)` blends the
+expected cost with conditional-value-at-risk via the Rockafellar–Uryasev
+linear-programming form:
+
+```
+CVaR_α(L) = min_t  t + (1/(1−α)) · E[(L − t)_+]
+```
+
+The combined objective is:
+
+```
+(1 − λ) · E[cost]  +  λ · CVaR_α(cost)  +  smoothness  −  terminal_SoC
+```
+
+`cvar_weight=0` (default) reduces to expected-cost MPC. Higher weights
+trade mean cost for tail-cost reduction. Convex (CVaR is the minimum of
+an LP with auxiliary variable `t`).
+
+### Mixed-integer amperage (`MPCControllerInteger`)
+
+Enforces `a[τ] ∈ ℤ` for 1 A discretization. Uses any installed MIP
+solver from `{SCIP, CBC, GLPK_MI, GUROBI, MOSEK}`; if none is found,
+falls back to solving the continuous LP and rounding. The fallback is
+intentionally lossy and may produce small SoC drift relative to the true
+MIP solution.
+
+### Adapter to `solar-tsfm-bench`
+
+`forecast_adapter.from_tsfm_result(...)` accepts duck-typed objects with
+`point: np.ndarray` and optional `quantiles: dict[float, np.ndarray]`.
+
+- **Quantile path:** sample K scenarios via inverse-CDF interpolation
+  across the sorted quantiles.
+- **Point + residuals path:** bootstrap residuals from training data.
+- **Point only:** warn and return a degenerate K=1 bundle.
+
+The repo never imports `solar-tsfm-bench` — the adapter is a contract.

@@ -85,3 +85,62 @@ depends on:
 Phase 4: replace the perfect-forecast input with quantile forecasts from
 [`solar-tsfm-bench`](https://github.com/AkshatS123/solar-tsfm-bench), and
 do a robust-MPC reformulation.
+
+---
+
+# Part 2 · Reliability under noisy forecasts (Phase 4)
+
+The story above used perfect forecasts. Real life has noise. This section
+runs all four controllers under N=50 noisy realizations of the same
+2-day trace with σ_solar=0.40, σ_load=0.20·base, K=10 scenarios in the
+controller's view, and a tight deadline (SoC 0.25 → 0.90 by step 48).
+
+![reliability under noise](./figures/03_robustness.png)
+
+## What changes — and what doesn't
+
+| Controller | Cost | Deadline-miss |
+|---|---|---|
+| MPC          | $9.91 ± $0.18 | **0%** |
+| RobustMPC    | $9.94 ± $0.18 | **0%** |
+| Greedy       | $8.65 ± $0.32 | **100%** |
+| TOU          | $12.52 ± $0.12 | **0%** |
+
+**The headline:** *Solar-greedy controllers fail at the actual job.*
+
+Greedy is the cheapest controller in the comparison — and **misses the
+deadline 100% of the time**. It charges only when current solar exceeds
+load, so on a noisy realization where solar is below forecast, it under-
+charges and never catches up. It optimizes for the wrong objective.
+
+MPC and RobustMPC both reliably hit the deadline at near-identical cost
+(~$0.03 spread). TOU is reliable but pays a 26% premium for ignoring
+solar entirely.
+
+## Why RobustMPC barely differs from nominal MPC
+
+A subtlety the algorithm spec calls out: in this formulation, **SoC
+dynamics depend only on the action `a`, not on uncertain solar/load**.
+So the deadline constraint is *deterministic* — the optimizer sees the
+same feasible set under nominal and robust formulations. The only
+difference is in expected vs realized grid-import cost, which is
+small under unbiased multiplicative noise.
+
+Robust formulations would dominate on this problem if any of the
+following changed:
+- **Chance constraints** on the deadline (excluded by Phase 4 anti-goal)
+- **Asymmetric / biased noise** (our noise is unbiased multiplicative)
+- **Multi-stage recourse** with adjustable later-stage decisions
+
+The CVaR variant (`cvar_weight=0.7, cvar_alpha=0.9`, see `docs/algorithm.md`)
+trades mean cost for ~5% lower variance — modest, accurate, opt-in.
+
+## What this means for the v2 Tesphase charging algorithm
+
+The 60 kWh battery and 32 A charger leave plenty of margin to the
+deadline. In that regime, **nominal MPC is already robust** and the
+right choice. Robust formulations earn their complexity in tighter
+regimes — heavy-duty fleet vehicles with tight depots, or grid-edge
+applications where chance-constrained deadline reliability is
+required. Phase 4 ships those formulations as documented options, not
+as the default.
