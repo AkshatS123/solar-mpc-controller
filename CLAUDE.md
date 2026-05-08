@@ -61,13 +61,55 @@ about goals and roadmap; the repo doc is right about what the code does**.
 
 See `docs/launch_assets.md` for the day-0 checklist. The engineering pieces are done; everything left requires you:
 
-1. Export your Tesphase dry-run trace to `data/raw/tesphase_anonymized.parquet` (gitignored). Schema: `{timestamp, solar_kw, load_kw, grid_price}`. Anonymize timestamps (shift to `2026-01-01` epoch).
-2. Run `uv run python scripts/replay_tesphase.py --trace data/raw/tesphase_anonymized.parquet`.
-3. Edit `docs/blog_draft.md` in your voice, port to akshatsharma.blog, publish.
-4. Post Twitter thread + LinkedIn from `docs/launch_assets.md`.
-5. Send 3–5 cold emails from the template.
-6. Tag `v0.1.0` on GitHub with release notes.
-7. After ≥7 days: backfill star/fork numbers in your resume bullet.
+### Getting the own-house Tesphase trace (two-step pipeline)
+
+The Tesphasev2 repo already has the Neon → parquet exporter. The
+solar-mpc-controller repo has a converter that reshapes + anonymizes +
+overlays a real utility tariff (Tesphase tracks `tou_period` as
+`"prefer"|"avoid"|"neutral"` — those are decision labels, not actual
+$/kWh, so we synthesize price from a published tariff schedule).
+
+```bash
+# 1) Export from Neon (Tesphasev2 repo)
+cd ~/Documents/Dev/Tesphasev2
+export DATABASE_URL='postgres://...your-neon-url...'
+export OWNER_USER_ID='<your-user.id-from-dashboard-DB>'
+./scripts/export_cycle_telemetry.py \
+    --out exports/own_house_2026.parquet \
+    --since 2026-04-01 --until 2026-05-06
+
+# 2) Convert + anonymize + tariff overlay (this repo)
+cd ~/Documents/Dev/solar-mpc-controller
+uv run python scripts/convert_tesphase_export.py \
+    --input ~/Documents/Dev/Tesphasev2/exports/own_house_2026.parquet \
+    --tariff pge-ev2a-summer \
+    --output data/raw/tesphase_anonymized.parquet
+
+# 3) Replay through all four controllers, write figure 04
+uv run python scripts/replay_tesphase.py \
+    --trace data/raw/tesphase_anonymized.parquet
+```
+
+The converter:
+- Filters to rows with non-null `estimatedHouseLoadW` (so we get house
+  load excluding EV charging — otherwise the simulator double-counts)
+- Resamples to 15-minute means
+- Shifts timestamps so the first row is 2026-01-01 00:00 UTC
+- Synthesizes `grid_price` from the `--tariff` schedule by hour-of-day
+- Drops everything except `{timestamp, solar_kw, load_kw, grid_price}`
+
+Built-in tariffs: `pge-ev2a-summer`, `sce-toud-prime-summer`. Or supply
+your own JSON file path. See `scripts/convert_tesphase_export.py` for
+the schedule format.
+
+### After the trace runs
+
+4. Edit `docs/blog_draft.md` in your voice, port to akshatsharma.blog, publish.
+5. Post Twitter thread + LinkedIn from `docs/launch_assets.md`.
+6. Send 3–5 cold emails from the template.
+7. Tag `v0.1.0` on GitHub with release notes.
+8. Update vault `[[Accomplishments]]`.
+9. +14 days: backfill star/fork numbers in your resume bullet.
 
 The canonical phase tracker is the **Phased milestones** section in the
 [strategic plan](file://~/Documents/Dev/AkshatEverything/03-Startups/Active/Tesphase/Research/SolarMPCController_2026-05-07.md).
