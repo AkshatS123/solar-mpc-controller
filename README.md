@@ -119,7 +119,8 @@ extensions would dominate.
 - [x] **Phase 2** — rolling-horizon simulator, baselines, CLI
 - [x] **Phase 3** — figures, notebook walkthrough, algorithm writeup
 - [x] **Phase 4** — stochastic simulator, RobustMPC, CVaR variant, MIP variant, tsfm-bench adapter shim
-- [ ] **Phase 5** — Tesphase trace replay + post on [akshatsharma.blog](https://akshatsharma.blog)
+- [x] **Phase 5 (engineering)** — `scripts/replay_tesphase.py`, `docs/blog_draft.md`, `docs/launch_assets.md`
+- [ ] **Phase 5 (publishing)** — Tesphase own-house trace export, blog post on [akshatsharma.blog](https://akshatsharma.blog), Twitter / LinkedIn / cold emails, `v0.1.0` release tag
 
 ## License
 

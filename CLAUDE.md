@@ -52,9 +52,22 @@ about goals and roadmap; the repo doc is right about what the code does**.
 | 1+2 — cvxpy MPC, baselines, simulator, CLI | ✅ committed |
 | 3 — figures, walkthrough, algorithm spec | ✅ committed |
 | 4 — stochastic simulator, RobustMPC, CVaR, MIP variant, tsfm-bench adapter | ✅ committed |
-| 5 — Tesphase trace replay + blog post | ⬜ blocked on user trace |
+| 5 (engineering) — replay script, blog draft, launch assets | ✅ committed |
+| 5 (publishing) — own-house trace export, blog post, social, release tag | ⬜ user-only |
 
-28 passing tests, ruff clean, demo + 3 figures regenerate end-to-end.
+30 passing tests, ruff clean, demo + 3 figures regenerate end-to-end.
+
+## Phase 5 publishing — what's left for you
+
+See `docs/launch_assets.md` for the day-0 checklist. The engineering pieces are done; everything left requires you:
+
+1. Export your Tesphase dry-run trace to `data/raw/tesphase_anonymized.parquet` (gitignored). Schema: `{timestamp, solar_kw, load_kw, grid_price}`. Anonymize timestamps (shift to `2026-01-01` epoch).
+2. Run `uv run python scripts/replay_tesphase.py --trace data/raw/tesphase_anonymized.parquet`.
+3. Edit `docs/blog_draft.md` in your voice, port to akshatsharma.blog, publish.
+4. Post Twitter thread + LinkedIn from `docs/launch_assets.md`.
+5. Send 3–5 cold emails from the template.
+6. Tag `v0.1.0` on GitHub with release notes.
+7. After ≥7 days: backfill star/fork numbers in your resume bullet.
 
 The canonical phase tracker is the **Phased milestones** section in the
 [strategic plan](file://~/Documents/Dev/AkshatEverything/03-Startups/Active/Tesphase/Research/SolarMPCController_2026-05-07.md).

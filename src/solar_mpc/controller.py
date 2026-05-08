@@ -170,6 +170,16 @@ class RobustMPCController:
         self.cvar_alpha = cvar_alpha
         self.cvar_weight = cvar_weight
 
+    def step(self, inputs: ControllerInputs) -> ControlAction:
+        """Deterministic-trace entry point: degenerate K=1 bundle.
+
+        Lets `simulate()` run RobustMPCController on the same code path as
+        nominal MPC — useful for the perfect-forecast comparison and for
+        the Tesphase replay.
+        """
+        bundle = ForecastBundle.degenerate(inputs.solar_kw, inputs.load_kw, inputs.grid_price)
+        return self.step_bundle(bundle, soc_now=inputs.soc_now, deadline_step=inputs.deadline_step)
+
     def step_bundle(
         self, bundle: ForecastBundle, soc_now: float, deadline_step: int
     ) -> ControlAction:
